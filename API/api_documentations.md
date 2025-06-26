@@ -1,15 +1,22 @@
 
+## Full Path URLs
 
-API Integrations and Documentations
+Here are the available API endpoints:
 
-API - Parent select via category
+- **Maintenance API**  
+  `/api/maintenance/`
 
-/name-of-api/  - e.g. /maintenance/
+- **IGSL Facilities API**  
+  `/api/igsl-facilities/`
 
-Full Path URL: 
+- **Van Request API**  
+  `/api/vanrequest/`
 
-url: /api/maintenance/
-url: /api/igsl-facilities/
-url: /api/vanrequest/
-url: /api/trust-account/
-url: /api/sports/
+- **Trust Account API**  
+  `/api/trust-account/`
+
+- **Sports API**  
+  `/api/sports/`
+
+- **Trust API**  
+  `/api/trust-account/`

@@ -2,12 +2,58 @@
 
 #
 
-Template:
+# Template:
 
 ## Patch:
 **File Names:** 
 **Description:**
 **Patch Notes:**
+
+#
+
+## Patch: 2025-06-26 P1
+**File Names:** 
+	
+	- over_all_adminpage.php
+	- email_all_functions.php
+	
+
+**Description:** 
+
+	- Changing the cut off period of the admin account.
+
+**Patch Notes:**
+
+	- Updating the cut off period generate from user. Now convert to automation.
+	- The logic create a cut off period base on the current day number.
+	- This will will ensure the previous no clock out from the last cut off period will not be notified again.
+
+
+
+	
+                  // Begin your original logic
+                  $months = ["January", "February", "March", "April", "May", "June",
+                                 "July", "August", "September", "October", "November", "December"];
+
+                      // Get today's date info
+                      $currentDay = (int) date('d');
+                      $currentMonthIndex = (int) date('m') - 1; // 0-based index
+                      $currentYear = date('Y');
+
+                      // Determine cutoff period
+                      $cutoffPeriod = $currentDay >= 16 ? 'secondCutoff' : 'firstCutoff';
+
+                      // Build date range
+                      $m = str_pad($currentMonthIndex + 1, 2, "0", STR_PAD_LEFT);
+                      if ($cutoffPeriod === "firstCutoff") {
+                          $fmonthday = "$currentYear-$m-01";
+                          $ldayofmst = "$currentYear-$m-15";
+                      } else {
+                          $fmonthday = "$currentYear-$m-16";
+                          $ldayofmst = "$currentYear-$m-31";
+                      }
+
+
 
 
 #
