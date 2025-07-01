@@ -17,6 +17,8 @@ Template:
 **File Names:**  
 
 	- ezra_application_form_admin_page.php
+	- igsl_all_vendor_list.php 
+
 
 **Description:** 
 
@@ -74,6 +76,113 @@ This patch introduces a feature to automatically update the vendor name in the E
 ?>
 
 ```
+
+# igsl_all_vendor_list.php 
+
+<!-- OLD VERSION COPY FOR REFERENCE -->
+
+```html
+  <table id="rdatamain" class="hover row-border tab" style="width:70%">
+      <thead>
+          <tr>
+              <th>ID</th>
+              <th>RC / VENDOR NAME</th>
+              <th>EMAIL</th>
+              <th>USER</th>
+              <th>USER1</th>
+              <th>EMPLOYEE NAME</th>
+              <th>STATUS</th>
+              <th>ACTIONS</th>
+
+          </tr>
+      </thead>
+      <tbody>
+
+        <!-- MAKING FOR  LOOP FOR DISPLAYING DATA FROM DATABASE -->
+
+
+
+          <?php
+
+          // MAKING DATABASE CONNECTION AND GET ALL DATA FROM DATABASE
+
+            $results = $wpdb->get_results("SELECT * FROM igsl_rc_and_vendor_combine");
+
+
+                foreach ($results as $rvalue) {
+
+
+          ?>
+          <tr   >
+
+            <td><?php   echo $rvalue->id_key; ?></td>
+            <td style="text-align: left; font-size: 2rem"><?php   echo $rvalue->RC_Vendor_Name; ?></td>
+            <td style="text-align: left; font-size: 2rem"><?php   echo $rvalue->Name_Email; ?></td>
+            <td style="text-align: left; font-size: 2rem"><?php   echo $rvalue->user_name; ?></td>
+            <td style="text-align: left; font-size: 2rem"><?php   echo $rvalue->user_name1; ?></td>
+            <td style="text-align: left; font-size: 2rem"><?php   echo $rvalue->employee_names; ?></td>
+            <td><?php   echo $rvalue->States; ?></td>
+            <td >
+              <!-- <button onclick="location.href='#'" type="button" class="btn btn-warning">CANCEL</button> -->
+
+
+
+
+
+                <form method='post' action='<?= $_SERVER['REQUEST_URI']; ?>'>
+                <!-- <button  onclick="location.href='#/?data=<?= $rvalue->id; ?>'"   type="button" class="btn btn-info cancel" value="edit" <?php if ($rvalue->status == 'CONFIRMED' || $rvalue->status == 'CANCELLED' || $rvalue->status == 'REJECTED'){ ?> disabled <?php   } ?> > EDIT </button> -->
+                <!-- <button id='<?= $rvalue->id; ?>' data-url='<?= $rvalue->id; ?>' name="cancel" type="button" class="btn btn-danger ajax_delete cancel" value="cancel" > CANCEL </button> -->
+
+                  <?php
+                    $psndata = $rvalue->id;
+                    $encrypturl = base64_encode( json_encode($psndata) );
+                  ?>
+
+
+
+
+                </form>
+
+                <div style="display:grid; grid-template-columns: auto auto; gap: 1%">
+                        <div>
+                        <button onclick="getDetails('<?php echo $rvalue->id_key ?>')"  name="gid"  class="btn btn-success cancel glyphicon glyphicon-edit" type="button"  data-toggle="modal" data-target="#exampleModal">
+
+                            </button>
+                        </div>
+                        <div>
+                        <button type="button" class="btn btn-danger  glyphicon glyphicon-trash" onclick="delrcvendor('<?php echo $rvalue->id_key ?>')"></button>
+
+
+                            </div>
+
+                </div>
+
+
+
+          </td>
+
+
+                <?php } ?>
+          </tr>
+
+
+
+
+        </tbody>
+
+   <!-- FOREACH TABLE CLOSING TAGS  -->
+
+
+    </table>
+
+
+
+
+```
+
+
+
+
 
 #
 
