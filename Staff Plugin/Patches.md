@@ -18,6 +18,8 @@ Template:
 
 	- ezra_application_form_admin_page.php
 	- igsl_all_vendor_list.php 
+	- export_ezra_gym_csv_netsuite.php
+
 
 
 **Description:** 
@@ -27,6 +29,19 @@ Template:
 # Patch Notes: Ezra Gym Membership Vendor Name Auto-Update
 
 ## Overview
+
+
+#
+
+- Fixing the export_ezra_gym_csv_netsuite import to netsuite data creation.
+
+	- Fixed:
+		- Removing all unknown data.
+		- Fixing the random RC name that tag to the ezra gym member that has no vendor name listed in the table.
+		- Adding auto update vendor name of the ezra gym membership table.
+
+
+#
 
 This patch introduces a feature to automatically update the vendor name in the Ezra Gym membership table (`igsl_ezra_gym_reservation`) based on registered vendor names within the `RC Vendor List` (specifically, the `igsl_rc_and_vendor_combine` table). This aims to reduce manual work for administrators and minimize human errors related to incorrect Responsibility Centre (RC) or vendor name entries.
 
