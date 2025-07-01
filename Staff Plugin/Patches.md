@@ -181,8 +181,70 @@ This patch introduces a feature to automatically update the vendor name in the E
 ```
 
 
+- Updated Fetching Data via Ajax way to less load time in the page
 
+```javascript
 
+<script>
+
+      $(document).ready(function () {
+          $('#rcVendorTable').DataTable({
+              processing: true,
+              serverSide: true,
+              pageLength: 50, // 👈 Default page length
+              lengthMenu: [[50, 200, 500, 1000, -1], [50, 200, 500, 1000, "All"]], // 👈 Dropdown options
+
+              ajax: {
+                  url: 'url/', // Your API endpoint
+                  type: 'POST'
+              },
+              columns: [
+                  {
+                      data: null,
+                      render: function (data, type, row, meta) {
+                          return meta.row + meta.settings._iDisplayStart + 1; // Correct row numbering
+                      },
+                      title: "No."
+                  },
+                  {
+                       data: 'rc_vendor_name',
+                       title: 'RC Vendor Name',
+                       createdCell: function (td) {
+                         $(td).css('text-align', 'left');
+                       }
+                     },
+                  {
+                      data: 'id_kay',
+                      title: 'Email',
+                      createdCell: function (td) {
+                        $(td).css('text-align', 'left');
+                      },
+                      render: function (data, type, row) {
+                         return `<a href="#" onclick="getDetails('${data}'); return false;">${row.name_email}</a>`;
+                      }
+                    },
+
+                  { data: 'user_id', title: 'User Login' },
+                  { data: 'employee_names', title: 'Employee Names' },
+                  { data: 'bpi_account', title: 'BPI Account' },
+                  { data: 'states', title: 'States' },
+              ],
+              dom: 'Bfrtip',
+              buttons: [
+               { extend: 'copy', className: 'btn btn-sm btn-primary' },
+               { extend: 'csv', className: 'btn btn-sm btn-primary' },
+               { extend: 'excel', className: 'btn btn-sm btn-primary' },
+               { extend: 'pdf', className: 'btn btn-sm btn-primary' },
+               { extend: 'print', className: 'btn btn-sm btn-primary' }
+             ],
+             responsive: true,
+              order: []
+          });
+      });
+
+</script>
+
+```
 
 #
 
