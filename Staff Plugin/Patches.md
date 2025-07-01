@@ -21,62 +21,57 @@ Template:
 **Description:** 
 
 	- Updating the correct Vendor or RC name for charging to account
+	
+# Patch Notes: Ezra Gym Membership Vendor Name Auto-Update
 
-**Patch Notes:**
+## Overview
 
+This patch introduces a feature to automatically update the vendor name in the Ezra Gym membership table (`igsl_ezra_gym_reservation`) based on registered vendor names within the `RC Vendor List` (specifically, the `igsl_rc_and_vendor_combine` table). This aims to reduce manual work for administrators and minimize human errors related to incorrect Responsibility Centre (RC) or vendor name entries.
 
+## Logic and Rules
 
-	- Documentation this snippet of php code will update automatically the ezra gym table vendor name base on the registered vendor name inside RC Vendor List that all the Vendor and Responsibility Centre stored this will help the admin to less the work and less the human error on typing the wrong rc or vendor name.
+1.  **Email Address as Key:** The core logic relies on using the user's email address to search for a corresponding registered vendor name in the `igsl_rc_and_vendor_combine` table.
+2.  **Dynamic Update:** If a matching vendor name is found for the user's email, the system will dynamically update that specific user's `vender_name` in the `igsl_ezra_gym_reservation` table. This ensures accurate charging processes for personal accounts.
+3.  **Registration Check:** If a user's email is not registered in the `RC Vendor List`, a "No Vendor Registered" message will be displayed, indicating that no automatic update can be performed for that user.
 
-	- This logic has a rule of getting the email address and used that email address to search it inside the rc vendor all.
+## Code Snippet
 
-	- if registered it will display and update that specific user there rc or vendor name for the charging process of there personal account.
-
-
+```php
 <?php
 
     /**
-    ** EZRA GYM MEMBERSHIP REGISTRATION
-    ** PATCH: 2025-06-27
-    ** DOCUMENTATIONS:
-    ** ADDING ON LOAD UPDATE THE MEMBERSIP
-    ** THE VENDOR NAME UPDATE DYNAMICALLY INSERT INTO
-    ** THE TBL OF EZRA MEMBERSHIP VIA EMAIL ADDRESS CHECK VALIDATION
-    **/
+     ** EZRA GYM MEMBERSHIP REGISTRATION
+     ** PATCH: 2025-06-27
+     ** DOCUMENTATIONS:
+     ** ADDING ON LOAD UPDATE THE MEMBERSIP
+     ** THE VENDOR NAME UPDATE DYNAMICALLY INSERT INTO
+     ** THE TBL OF EZRA MEMBERSHIP VIA EMAIL ADDRESS CHECK VALIDATION
+     **/
 
-
+    // Retrieve the RC Vendor Name from the combined RC and Vendor table
+    // using the currently logged-in user's email address.
     $gallvendor = $wpdb->get_results("SELECT RC_Vendor_Name FROM igsl_rc_and_vendor_combine WHERE Name_Email ='$user->user_email' ");
 
-
-
+    // Check if a vendor name was found for the user's email.
     if(!empty($gallvendor[0]->RC_Vendor_Name)){
+        // If found, display the vendor name in green.
+        echo "<p style='color:green'>" . $gallvendor[0]->RC_Vendor_Name . "</p>";
 
-
-
-          echo "<p style='color:green'>" . $gallvendor[0]->RC_Vendor_Name . "</p>";
-
-
-          $updatemembershpven = $wpdb->query(
-                          $wpdb->prepare(
-                              "UPDATE igsl_ezra_gym_reservation SET vender_name = %s WHERE email = %s",
-                              $gallvendor[0]->RC_Vendor_Name,
-                              $user->user_email
-                          )
-                        );
-
-
-    }else {
-          echo "<p style='color:red'>No Vendor Registered.</p>";
+        // Update the 'vender_name' in the Ezra Gym reservation table
+        // for the specific user's email with the retrieved vendor name.
+        $updatemembershpven = $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE igsl_ezra_gym_reservation SET vender_name = %s WHERE email = %s",
+                $gallvendor[0]->RC_Vendor_Name,
+                $user->user_email
+            )
+        );
+    } else {
+        // If no vendor name is found for the user's email, display a "No Vendor Registered" message in red.
+        echo "<p style='color:red'>No Vendor Registered.</p>";
     }
 
-
-
-
-
-
 ?>
-
-
 
 
 
