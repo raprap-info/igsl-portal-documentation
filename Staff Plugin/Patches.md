@@ -249,7 +249,7 @@
 
            let leavescal = "";
 
-           $.post("https://igsl-portal.igsl.asia/tmp-staff-all-timesheet-blank/", {
+           $.post("https://url/tmp-staff-all-timesheet-blank/", {
                leavescal: leavescal
            }, function (data, status) {
                // STATUS WHEN THE PROCESS IS NOT ERROR
