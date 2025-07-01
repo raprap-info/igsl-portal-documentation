@@ -20,3 +20,13 @@ Here are the available API endpoints:
 
 - **Trust API**  
   `/api/trust-account/`
+
+- **RC Centre API**  
+  `/api/latest-responsibility-centre-api/`
+
+  - **RC Centre API**  
+  `/api/latest-responsibility-centre-api/`
+
+  - **Portal User API**  
+  `/api/portal-all-wp-users/`
+

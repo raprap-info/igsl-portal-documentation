@@ -2,61 +2,98 @@
 
 #
 
-# Template:
+Template:
 
 ## Patch:
 **File Names:** 
 **Description:**
 **Patch Notes:**
 
+
 #
 
-## Patch: 2025-06-26 P1
-**File Names:** 
-	
-	- over_all_adminpage.php
-	- email_all_functions.php
-	
+
+## Patch: 2025-07-01 P1
+**File Names:**  
+
+	- ezra_application_form_admin_page.php
 
 **Description:** 
 
-	- Changing the cut off period of the admin account.
+	- Updating the correct Vendor or RC name for charging to account
 
 **Patch Notes:**
 
-	- Updating the cut off period generate from user. Now convert to automation.
-	- The logic create a cut off period base on the current day number.
-	- This will will ensure the previous no clock out from the last cut off period will not be notified again.
+
+
+	- Documentation this snippet of php code will update automatically the ezra gym table vendor name base on the registered vendor name inside RC Vendor List that all the Vendor and Responsibility Centre stored this will help the admin to less the work and less the human error on typing the wrong rc or vendor name.
+
+	- This logic has a rule of getting the email address and used that email address to search it inside the rc vendor all.
+
+	- if registered it will display and update that specific user there rc or vendor name for the charging process of there personal account.
+
+
+<?php
+
+    /**
+    ** EZRA GYM MEMBERSHIP REGISTRATION
+    ** PATCH: 2025-06-27
+    ** DOCUMENTATIONS:
+    ** ADDING ON LOAD UPDATE THE MEMBERSIP
+    ** THE VENDOR NAME UPDATE DYNAMICALLY INSERT INTO
+    ** THE TBL OF EZRA MEMBERSHIP VIA EMAIL ADDRESS CHECK VALIDATION
+    **/
+
+
+    $gallvendor = $wpdb->get_results("SELECT RC_Vendor_Name FROM igsl_rc_and_vendor_combine WHERE Name_Email ='$user->user_email' ");
 
 
 
-	
-                  // Begin your original logic
-                  $months = ["January", "February", "March", "April", "May", "June",
-                                 "July", "August", "September", "October", "November", "December"];
+    if(!empty($gallvendor[0]->RC_Vendor_Name)){
 
-                      // Get today's date info
-                      $currentDay = (int) date('d');
-                      $currentMonthIndex = (int) date('m') - 1; // 0-based index
-                      $currentYear = date('Y');
 
-                      // Determine cutoff period
-                      $cutoffPeriod = $currentDay >= 16 ? 'secondCutoff' : 'firstCutoff';
 
-                      // Build date range
-                      $m = str_pad($currentMonthIndex + 1, 2, "0", STR_PAD_LEFT);
-                      if ($cutoffPeriod === "firstCutoff") {
-                          $fmonthday = "$currentYear-$m-01";
-                          $ldayofmst = "$currentYear-$m-15";
-                      } else {
-                          $fmonthday = "$currentYear-$m-16";
-                          $ldayofmst = "$currentYear-$m-31";
-                      }
+          echo "<p style='color:green'>" . $gallvendor[0]->RC_Vendor_Name . "</p>";
+
+
+          $updatemembershpven = $wpdb->query(
+                          $wpdb->prepare(
+                              "UPDATE igsl_ezra_gym_reservation SET vender_name = %s WHERE email = %s",
+                              $gallvendor[0]->RC_Vendor_Name,
+                              $user->user_email
+                          )
+                        );
+
+
+    }else {
+          echo "<p style='color:red'>No Vendor Registered.</p>";
+    }
+
+
+
+
+
+
+?>
+
 
 
 
 
 #
+
+
+## Patch: 2025-06-30 p1
+**File Names:**  api_latest_rc_list.php, api_alluserfportaldash.php
+**Description:** For serverside fetching data
+**Patch Notes:**
+
+	- To easily get the records and less load time.
+
+
+
+#
+
 ## Patch: 2025-06-23 p1
 **File Names:** staff_task_progress_roadmap.php
 **Description:** Adding Visual Search via copied image 
@@ -249,7 +286,7 @@
 
            let leavescal = "";
 
-           $.post("https://url/tmp-staff-all-timesheet-blank/", {
+           $.post("https://igsl-portal.igsl.asia/tmp-staff-all-timesheet-blank/", {
                leavescal: leavescal
            }, function (data, status) {
                // STATUS WHEN THE PROCESS IS NOT ERROR
@@ -287,4 +324,4 @@
 
 **Patch Notes:**  
 
-You're getting an error because you're trying to access `$_POST['email']` and `$_POST['password']`, but your form actually uses `name="log"` and `name="pwd"`, which are the default field names WordPress uses for login.
+ - You're getting an error because you're trying to access `$_POST['email']` and `$_POST['password']`, but your form actually uses `name="log"` and `name="pwd"`, which are the default field names WordPress uses for login.
