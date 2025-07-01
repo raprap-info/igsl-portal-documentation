@@ -225,6 +225,8 @@ This patch introduces a feature to automatically update the vendor name in the E
        ?>
 
 
+	```
+
 	```javascript
        <script>
        			
@@ -250,8 +252,8 @@ This patch introduces a feature to automatically update the vendor name in the E
 
 
        </script>
-
 	```
+
 #
 
 
