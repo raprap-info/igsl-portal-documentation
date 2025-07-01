@@ -135,6 +135,9 @@ This patch introduces a feature to automatically update the vendor name in the E
 	- Fixing the error when the page visit in the first place.
 
 	Solution:
+
+	```php
+	
 	<?php
 
 	 $month_period = $_POST['month_period'] ?? '';
@@ -174,7 +177,7 @@ This patch introduces a feature to automatically update the vendor name in the E
 		 $title = "IGSL STAFF Salary Summary - $mm $yyyy (Period $period)";
 
 		?>
-
+	```
 
 	- Fixing calculation payroll page that display divided 4 instead of two from the account of Noelly.
 
