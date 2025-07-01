@@ -21,7 +21,7 @@ Template:
 **Description:** 
 
 	- Updating the correct Vendor or RC name for charging to account
-	
+
 # Patch Notes: Ezra Gym Membership Vendor Name Auto-Update
 
 ## Overview
@@ -73,7 +73,7 @@ This patch introduces a feature to automatically update the vendor name in the E
 
 ?>
 
-
+```
 
 #
 
