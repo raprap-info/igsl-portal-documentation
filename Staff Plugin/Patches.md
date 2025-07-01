@@ -137,7 +137,7 @@ This patch introduces a feature to automatically update the vendor name in the E
 	Solution:
 
 	```php
-	
+
 	<?php
 
 	 $month_period = $_POST['month_period'] ?? '';
@@ -211,6 +211,8 @@ This patch introduces a feature to automatically update the vendor name in the E
 **Description: Staff Filing Overtime fixed the time format.**    
 **Patch Notes:**
 
+	```php
+
 	<?php
 
 	    // Convert to 24-hour format
@@ -223,6 +225,7 @@ This patch introduces a feature to automatically update the vendor name in the E
        ?>
 
 
+	```javascript
        <script>
        			
 
@@ -248,7 +251,7 @@ This patch introduces a feature to automatically update the vendor name in the E
 
        </script>
 
-
+	```
 #
 
 
