@@ -66,9 +66,12 @@ Here are the available API endpoints:
 - **RC Centre API**  
   `/api/latest-responsibility-centre-api/`
 
-  - **RC Centre API**  
+- **RC Centre API**  
   `/api/latest-responsibility-centre-api/`
 
-  - **Portal User API**  
+- **Portal User API**  
   `/api/portal-all-wp-users/`
+
+  **Portal Fetching Staff Timesheets Records**
+  `/api/all_staff_timesheets_rec_fetchajax.php/`
 

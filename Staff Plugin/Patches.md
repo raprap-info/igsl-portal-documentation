@@ -13,6 +13,261 @@ Template:
 #
 
 
+
+#
+
+## Patch: 2025-07-02 P1
+**File Names:**  
+
+	- staff_nointervention_timesheets.php
+	- previous_timesheets_allrecords_view.php
+	- ldhr_late_undertimes.php
+	- all_staff_timesheets_rec_fetchajax.php
+
+**Description:** 
+
+	- Dynamic Change of Last day of per month.
+	- Dynamic Month of choosing cut off period.
+	- Updating the correct late and undertime via staff_timesheet_pay.
+	- Adding new page for fetching all staff timesheet records.
+
+**Patch Notes:**
+
+	- This snippet will get the last day of each month.
+
+```php
+
+
+		<?php
+
+				$gmonth = $timesheetsmonth;
+				$gcutoff = $timesheetscufof;
+				$ydatesonly = $gyearselect;
+
+
+
+						/**
+						** CREATE ARRAY TO SIMPLIFY THE MONTH AND CUTOFF CODES
+						**/
+
+						$worldmonths = [
+							"January", "February", "March", "April", "May", "June",
+							"July", "August", "September", "October", "November", "December"
+						];
+
+						foreach ($worldmonths as $key => $gvalmonth) {
+
+							// Match the month
+							if ($gmonth === $gvalmonth) {
+
+								$gkeysvals = $key + 1;
+
+								// Pad month to 2 digits
+								$addzerob = str_pad($gkeysvals, 2, "0", STR_PAD_LEFT);
+
+								if ($gcutoff === "firstCutoff") {
+									$fmonthday = "$ydatesonly-$addzerob-01";
+									$ldayofmst = "$ydatesonly-$addzerob-15";
+								} else { // secondCutoff
+									$fmonthday = "$ydatesonly-$addzerob-16";
+
+									// Get the last day of the month dynamically
+									$last_day = date("t", mktime(0, 0, 0, $gkeysvals, 1, $ydatesonly));
+									$ldayofmst = "$ydatesonly-$addzerob-$last_day";
+								}
+
+							}
+						}
+
+	?>
+
+```
+
+```php
+
+			<?php
+			/**
+			 * TEMPLATE: API FOR FETCHING ALL WP USERS + Timesheet Table
+			 */
+
+			// Prevent direct access
+			defined('ABSPATH') || exit;
+
+			if (!is_user_logged_in()) {
+				wp_send_json_error(['message' => 'Unauthorized'], 401);
+			}
+
+			$user = wp_get_current_user();
+			$allowed_roles = ['administrator', 'um_registrar-role', 'um_special-staff', 'um_special-role', 'um_staff', 'um_custodians', 'um_housing-role', 'um_finance-role'];
+
+			if (array_intersect($allowed_roles, $user->roles)) {
+				// All your PHP logic begins here
+
+
+
+				$curresupv = $current_user->user_login;
+
+				$tstimesheetsrec = $wpdb->get_results("SELECT * FROM `supervisor_timesheet_view` WHERE Supervisors = '$curresupv' ");
+				foreach ($tstimesheetsrec as $key => $thvalue) {
+					$timesheetsmonth =  $thvalue->Month;
+					$timesheetscufof =  $thvalue->CutoffPeriod;
+					$YearOnly =  $thvalue->YearOnly;
+					$gyearselect = $thvalue->YearOnly;
+
+				}
+
+
+
+
+
+
+
+				?>
+
+				<table id="stafftimeshetsf" style="width:100%" class="hover table table-responsive toggleTable">
+					<thead>
+						<tr>
+							<th>No.</th>
+							<th>Staff</th>
+							<th>Dates</th>
+							<th>Clock In</th>
+							<th>Clock Out</th>
+							<th>Late</th>
+							<th>Undertime</th>
+							<th>Absence</th>
+							<th>Request Type</th>
+							<th>Total</th>
+						</tr>
+					</thead>
+					<tbody>
+					<?php
+					$timezone = +8;
+					$curyear = gmdate("Y", time() + 3600 * ($timezone + date("I")));
+					$datesonly = gmdate("m/d/Y", time() + 3600 * ($timezone + date("I")));
+					$gonlydays = gmdate("d", time() + 3600 * ($timezone + date("I")));
+
+					$gmonth = $timesheetsmonth;
+					$gcutoff = $timesheetscufof;
+					$ydatesonly = $gyearselect;
+
+					$worldmonths = [
+						"January", "February", "March", "April", "May", "June",
+						"July", "August", "September", "October", "November", "December"
+					];
+
+					foreach ($worldmonths as $key => $gvalmonth) {
+						if ($gmonth === $gvalmonth) {
+							$gkeysvals = $key + 1;
+							$addzerob = str_pad($gkeysvals, 2, "0", STR_PAD_LEFT);
+
+							if ($gcutoff === "firstCutoff") {
+								$fmonthday = "$ydatesonly-$addzerob-01";
+								$ldayofmst = "$ydatesonly-$addzerob-15";
+							} else {
+								$fmonthday = "$ydatesonly-$addzerob-16";
+								$ldayofmst = "$ydatesonly-$addzerob-31";
+							}
+						}
+					}
+
+					$startDate = new DateTime($fmonthday);
+					$endDate = new DateTime($ldayofmst);
+					$endDate->modify('+1 day');
+
+					$weekends = $weekendsx = $displayWeekends = [];
+					$interval = new DateInterval('P1D');
+					$period = new DatePeriod($startDate, $interval, $endDate);
+
+					foreach ($period as $date) {
+						$dayOfWeek = $date->format('N');
+						if ($dayOfWeek == 6) {
+							$weekends[] = $date->format('Y-m-d');
+							$displayWeekends[] = $date->format('Y-m-d') . " - Saturday";
+						} elseif ($dayOfWeek == 7) {
+							$weekendsx[] = $date->format('Y-m-d');
+							$displayWeekends[] = $date->format('Y-m-d') . " - Sunday";
+						}
+					}
+
+					foreach ($displayWeekends as $weekend) {
+						echo $weekend . "<br>";
+					}
+
+					echo "<br><h4>Legend:</h4><br>";
+					echo "<div style='display: flex; align-items: center; gap: 20px;'>
+							<div style='background-color:#ffde21; height:25px; width:25px; margin-right: 5px;'></div><p style='margin: 0;'>Saturday</p>
+							<div style='background-color:#90d5ff; height:25px; width:25px; margin-right: 5px;'></div><p style='margin: 0;'>Sunday</p>
+							<div style='background-color:#FF3131; height:25px; width:25px; margin-right: 5px;'></div><p style='margin: 0;'>Late or Undertime</p>
+						</div><br>";
+
+					$onlyactivs = $wpdb->get_results("SELECT userid, Name FROM tabl  WHERE inactive ='No' ORDER BY Name ASC");
+
+					foreach ($onlyactivs as $liusvalue) {
+						$idlist = $liusvalue->userid;
+						$naming = $liusvalue->Name;
+						$countser = 0;
+						$totalhrsxx = 0;
+
+						$stgallsupstafli = $wpdb->get_results(
+							$wpdb->prepare(
+								"SELECT COUNT(*) as row_count, dates, clock_in, clock_out, regular, staff_id, user_action, late, undertime, absence
+								FROM TBL
+								WHERE dates BETWEEN %s AND %s
+								AND staff_id = %s
+								AND YEAR(dates) = %d
+								GROUP BY dates, clock_in, clock_out, total_hours, staff_id, user_action, late, undertime, absence",
+								$fmonthday, $ldayofmst, $idlist, $ydatesonly
+							)
+						);
+
+						foreach ($stgallsupstafli as $listofres) {
+							if ($listofres->staff_id != $idlist) continue;
+
+							$rowstyle = '';
+							if (in_array($listofres->dates, $weekends)) {
+								$rowstyle = "background-color:#ffde21";
+							} elseif (in_array($listofres->dates, $weekendsx)) {
+								$rowstyle = "background-color:#90d5ff";
+							} elseif ($listofres->late > 0 || $listofres->undertime > 0) {
+								$rowstyle = "background-color:#FF3131";
+							}
+
+							echo "<tr style='$rowstyle'>
+									<td>" . ++$countser . "</td>
+									<td style='text-align:left;'>" . strtoupper($naming) . "</td>
+									<td>{$listofres->dates}</td>
+									<td>{$listofres->clock_in}</td>
+									<td>{$listofres->clock_out}</td>
+									<td>{$listofres->late}</td>
+									<td>{$listofres->undertime}</td>
+									<td>{$listofres->absence}</td>
+									<td>" . strtoupper($listofres->user_action) . "</td>
+									<td>8</td>
+								</tr>";
+
+							$totalhrsxx += 8;
+						}
+
+						if ($countser > 0) {
+							echo "<tr style='background-color:#d1ab9b'>
+									<td colspan='9'><strong>Total Hours:</strong></td>
+									<td><h5>{$totalhrsxx}</h5></td>
+								</tr>";
+						}
+					}
+					?>
+					</tbody>
+				</table>
+
+				<?php
+			}
+			?>
+
+
+```
+
+#
+
 ## Patch: 2025-07-01 P1
 **File Names:**  
 
