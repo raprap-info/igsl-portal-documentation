@@ -23,6 +23,12 @@ Template:
 	- previous_timesheets_allrecords_view.php
 	- ldhr_late_undertimes.php
 	- all_staff_timesheets_rec_fetchajax.php
+	- ezra_application_form_admin_page.php
+	- export_ezra_gym_csv_netsuite.php
+	- ezra_application_form_all_data_functions.php
+
+
+
 
 **Description:** 
 
@@ -30,6 +36,11 @@ Template:
 	- Dynamic Month of choosing cut off period.
 	- Updating the correct late and undertime via staff_timesheet_pay.
 	- Adding new page for fetching all staff timesheet records.
+	- Display the cancellation remarks and add cancelled status.
+	- Strickting to approved only members who will get the billing for the ezra gym membership. Inside calculation and export to netsuite.
+	- Making to cname@igsl.asia mail send who will manage the application for cancellation of membership in the ezra gym.
+	
+
 
 **Patch Notes:**
 
