@@ -12,6 +12,32 @@ Template:
 
 #
 
+## Patch: 2025-07-03 P1
+**File Names:** 
+
+	- staff_nointervention_timesheets.php
+	- rsoadetails.php
+	- rapthemegrabber.php
+	- fetch_dataall_rconly.php
+
+
+**Description:**
+
+	- Fixing the creation or inserting the leave withoupay with the deducation income balance.
+	- Transfering rsoadetails.php from theme to plugin rapthemegrabber. 
+
+
+**Patch Notes:**
+
+	- Transferring rsoadetails.php for easily updating the code refining.
+	- assign page: post=330 | page name: SOA DETAILS 
+	- Main Template Grabber: rapthemegrabber.php
+
+	- Template:
+	   - fetch_dataall_rconly.php
+	   - Adding inserting Responsibility Centre with checking if already exist or not if not system will create that RC that
+	    	will inserted to igsl_rc_and_vendor_combine table for dynamic change that will use in the future update and insert new data.
+
 
 
 #
