@@ -19,12 +19,15 @@ Template:
 	- rsoadetails.php
 	- rapthemegrabber.php
 	- fetch_dataall_rconly.php
+	- facility_charging_calculate.php
+	- calculation_payroll_page_crtd.php
 
 
 **Description:**
 
 	- Fixing the creation or inserting the leave withoupay with the deducation income balance.
 	- Transfering rsoadetails.php from theme to plugin rapthemegrabber. 
+	- Updating the calculation and exporting to Netsuite RC or Vendor name dynamic tagging.
 
 
 **Patch Notes:**
@@ -32,12 +35,164 @@ Template:
 	- Transferring rsoadetails.php for easily updating the code refining.
 	- assign page: post=330 | page name: SOA DETAILS 
 	- Main Template Grabber: rapthemegrabber.php
+	- Template calculation_payroll_page_crtd.php
 
 	- Template:
 	   - fetch_dataall_rconly.php
 	   - Adding inserting Responsibility Centre with checking if already exist or not if not system will create that RC that
 	    	will inserted to igsl_rc_and_vendor_combine table for dynamic change that will use in the future update and insert new data.
 
+
+	 	- facility_charging_calculate.php
+		- This page include all the exporting to netsuite for facility charging for personal tag or rc tag.
+		- Adding rest day working day for guard
+
+
+
+	```php
+	
+		<?php
+		
+		
+			 	/***
+				** THIS PART IS FOR GUARD LEAVES THAT
+				** IS WORKING ON WEEKENDS SATURDAY AND SUNDAY
+				**/
+
+
+				// Section: Approved Whole-Day Leave Processing
+				// Retrieves and processes all approved whole-day leave requests that overlap
+				// with the current payroll period. Each day of an approved leave is then
+				// inserted into the payroll timesheet records.
+				$resultsxx = $wpdb->get_results(
+									$wpdb->prepare(
+										"SELECT * FROM `staff_leave_request_tbl`
+										WHERE ((start_date BETWEEN %s AND %s) OR (end_date BETWEEN %s AND %s))
+											AND `day_schedule_half_whole` = 'Whole Day'
+											AND `admin_status` = 'APPROVED'
+											AND `staff_id` IN ('jmiranda', 'Jligan')",
+										$start, $end, $start, $end
+									)
+								);
+
+
+				// Iterate through each fetched approved whole-day leave record
+				foreach ($resultsxx as $rvalue) {
+					// Extract relevant data from the current leave record
+					$idkey = $rvalue->idkey;
+					$staff_id = strtolower($rvalue->staff_id);
+					$leave_request_type = strtolower($rvalue->leave_request_type);
+
+					// Determine the start and end day of the leave period
+					$start_day = (int)date('d', strtotime($rvalue->start_date));
+					$end_day = (int)date('d', strtotime($rvalue->end_date));
+
+					// Sub-section: Adjust Leave Dates to Fit Payroll Period Boundaries
+					// Ensures that the processing of leave days does not go outside the
+					// defined payroll period ($start to $end).
+					if ($start_day < substr($start, 8, 2)) {
+						$start_day = substr($start, 8, 2); // Adjust leave start to payroll start day
+					}
+					if ($end_day > substr($end, 8, 2)) {
+						// Adjust leave end to payroll end day. The -1 might be a specific business rule
+						// or an off-by-one adjustment depending on the exact definition of $end.
+						$end_day = substr($end, 8, 2) - 1;
+					}
+
+					// Loop through each individual day within the adjusted leave period
+					for ($day = $start_day; $day <= $end_day; $day++) {
+						// Construct the full date for the current day being processed
+						$dates = date('Y-m-d', strtotime(substr($rvalue->start_date, 0, 8) . $day));
+						$user_action = $leave_request_type; // The type of leave (e.g., 'vacation', 'sick')
+
+
+							// Sub-section: Prevent Duplicate Leave Entries
+							// Checks if a leave entry for this specific staff member, date, and leave type
+							// already exists in the payroll timesheet table.
+							$existing_record = $wpdb->get_var($wpdb->prepare(
+										"SELECT COUNT(*) FROM `staff_timesheets_records_pay`
+										WHERE `dates` = %s AND `staff_id` = %s",
+										$dates, $staff_id
+									));
+
+									// Optional: Debug output
+									echo "<br><strong>Leave Type:</strong> " . esc_html($leave_request_type) . " | <strong>Staff ID:</strong> " . esc_html($staff_id) . " | <strong>Date:</strong> " . esc_html($dates) . "<br>";
+
+									// Insert only if no existing record
+									if (intval($existing_record) === 0) {
+										$inserted = $wpdb->insert(
+											'staff_timesheets_records_pay',
+											array(
+												'dates'       => $dates,
+												'user_action' => $user_action,
+												'staff_id'    => $staff_id,
+											),
+											array(
+												'%s', // dates
+												'%s', // user_action
+												'%s'  // staff_id
+											)
+										);
+
+										// Optional: Show success or failure
+										if ($inserted === false) {
+											echo '<div class="alert alert-danger">❌ Insert failed: ' . esc_html($wpdb->last_error) . '</div>';
+											error_log('WPDB Insert Error: ' . $wpdb->last_error);
+										} else {
+											echo '<div class="alert alert-success">✅ Inserted successfully.</div>';
+										}
+
+										echo '<div class="alert alert-success">✅ ' .$staff_id ." - " . $dates. '.</div>';
+
+									}
+
+
+
+
+					}
+				}
+
+		
+		
+		?>
+	
+	```
+	
+	```php
+
+	<?php
+	
+		
+				/**
+				** GET THE USER EMAIL ADD THEN 
+				** DO A SEARCH AND FIND THE EMAIL ADDRESS 
+				** THAT IS BIND TO THER USERNAME VIA PORTAL
+				**/
+
+
+				
+				// Get user email safely
+					$gwordpdash = $wpdb->get_var(
+						$wpdb->prepare(
+							"SELECT user_email FROM {$wpdb->prefix}users WHERE user_login = %s",
+							$user_namep
+						)
+					);
+					
+					// Proceed only if an email is found
+					if ($gwordpdash) {
+						// Get vendor using the fetched email safely
+						$getvendors = $wpdb->get_results(
+							$wpdb->prepare(
+								"SELECT * FROM igsl_rc_and_vendor_combine WHERE Name_Email = %s LIMIT 1",
+								$gwordpdash
+							)
+						);
+					}
+	
+	?>
+
+	```
 
 
 #
