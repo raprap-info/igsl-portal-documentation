@@ -29,6 +29,35 @@ Template:
 	- Creating a dynamic checking for all the staff for there leave balances.
 
 
+	```javascript
+
+
+	 			/**
+                ** ALL STAFF LEAVE BALANCES
+                ** REALTIME UPDATING THE RECORDS
+                ** OF ALL THE STAFF.
+                **/
+
+                fetch("https://igsl-portal.igsl.asia/api/fetch-staff-leave-balances/")
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.json(); // or response.text() if it's not JSON
+                    })
+                    .then(data => {
+                        //console.log(data); // handle your data here
+                    })
+                    .catch(error => {
+                        console.error("Fetch error:", error);
+                    });
+
+
+
+
+
+	```
+
 
 	```php
 
