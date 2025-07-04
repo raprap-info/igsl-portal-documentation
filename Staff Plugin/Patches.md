@@ -12,6 +12,260 @@ Template:
 
 #
 
+## Patch:
+**File Names:** 
+
+	- staff_balances_dashb.php
+	- New page: fetching_all_staff_leaves_balances.php
+
+
+**Description:**
+
+	- Validate and check and also update the all staff leaves balances.
+	- For checking and update the staff leave balances anytime and for any users visit that page.
+
+**Patch Notes:**
+
+	- Creating a dynamic checking for all the staff for there leave balances.
+
+
+
+	```php
+
+
+	    global $wpdb;
+
+
+
+
+                       /**
+                       *   GET THE FULL NAME ON THE STAFF FULLDETAILS TBL TO
+                       *   DISPLAY HIS / HER FULL NAME
+                       **/
+
+                         $divbyhrs = 0;
+                         $totaldayxxx = 0;
+
+                         $gcuurnuserr = $current_user->user_login;
+
+
+                           // Try to get the selected year
+                           $gdplist = $wpdb->get_results(
+                               $wpdb->prepare(
+                                   "SELECT year_selected_only FROM tmp_staff_yearly_selections_db WHERE staff_userid = %s",
+                                   $gcuurnuserr
+                               )
+                           );
+
+                           // Set default to current year if no record found
+                           if (!empty($gdplist)) {
+                               $yearseco = $gdplist[0]->year_selected_only;
+                           } else {
+                               $yearseco = date('Y'); // fallback to current year
+                           }
+
+
+
+
+                       $gallfdtailn = $wpdb->get_results("SELECT Name, userid FROM `staff_almost_fullrecords` WHERE  inactive ='No' GROUP BY Name, userid  ORDER BY Name ASC  ");
+                       foreach ($gallfdtailn as $key => $nvvalue) {
+
+
+                         $fnames = $nvvalue->Name;
+                         $useridxzz = $nvvalue->userid;
+
+                         if (!empty($fnames)) {
+
+                             $totalbalsxxx = 0;
+                             $totalleave = 0;
+                             $totalvleaves = 0;
+
+                             $gtimesheetfs = $wpdb->get_results("
+                                 SELECT staff_id, start_date, end_date, reasons, leave_request_type, day_schedule_half_whole
+                                 FROM `staff_leave_request_tbl`
+                                 WHERE staff_id = '$useridxzz'
+                                   AND YEAR(start_date) = '$yearseco'
+                                   AND leave_request_type IN ('VacationLeave','SickLeave')
+                                   AND (admin_status = 'APPROVED' OR admin_status = 'PENDING')
+                                 GROUP BY staff_id, start_date, end_date
+                             ");
+
+                             $counters = 0;
+
+                             foreach ($gtimesheetfs as $gtvalue) {
+                                 $useridg = $gtvalue->staff_id;
+                                 $reasons = $gtvalue->reasons;
+                                 $leave_request_type = $gtvalue->leave_request_type;
+                                 $day_schedule_half_whole = $gtvalue->day_schedule_half_whole;
+
+                                 $startxxx = new DateTime($gtvalue->start_date);
+                                 $endxx = new DateTime($gtvalue->end_date);
+
+                                 // Add +1 day only if the time is 00:00:00 (to include end day properly)
+                                 if ($endxx->format('H:i:s') === '00:00:00') {
+                                     //$endxx->modify('+1 day');
+                                 }
+
+                                 // Default day count logic
+                                 $dayCount = 0;
+
+                                 // If SickLeave and start-end is same day, check hours
+                                 if ($leave_request_type === 'SickLeave') {
+                                     $intervalMinutes = ($endxx->getTimestamp() - $startxxx->getTimestamp()) / 60;
+
+                                     // Same calendar day
+                                     if ($startxxx->format('Y-m-d') === $endxx->format('Y-m-d')) {
+                                         if ($intervalMinutes >= 480) { // 8 hours
+                                             $dayCount = 1;
+                                         } elseif ($intervalMinutes >= 240) { // 4 hours
+                                             $dayCount = 0.5;
+                                         } else {
+                                             $dayCount = 0;
+                                         }
+                                     } else {
+                                         // For multi-day SickLeave, count weekdays only
+                                         $period = new DatePeriod($startxxx, new DateInterval('P1D'), (clone $endxx)->modify('+1 day'));
+                                         foreach ($period as $dt) {
+                                             $dayOfWeek = $dt->format('N');
+                                             if ($dayOfWeek < 6) {
+                                                 $dayCount += 1;
+                                             }
+                                         }
+                                     }
+                                 } else {
+                                     // VacationLeave – count weekdays normally
+                                     $period = new DatePeriod($startxxx, new DateInterval('P1D'), (clone $endxx)->modify('+1 day'));
+                                     foreach ($period as $dt) {
+                                         $dayOfWeek = $dt->format('N');
+                                         if ($dayOfWeek < 6) {
+                                             if ($day_schedule_half_whole === 'Whole Day') {
+                                                 $dayCount += 1;
+                                             } else {
+                                                 $dayCount += 0.5;
+                                             }
+                                         }
+                                     }
+                                 }
+
+
+                                 // Accumulate totals
+                                   if ($leave_request_type === 'VacationLeave') {
+                                       $totalvleaves += $dayCount;
+                                   } elseif ($leave_request_type === 'SickLeave') {
+                                       $totalleave += $dayCount;
+                                   }
+                                   $totalbalsxxx += $dayCount;
+
+
+                                 // Output row
+                                 ?>
+
+                                 <?php
+                             }
+                             }
+                             $totalsickleave = $totalleave;
+                             $totalvleavesx  = $totalvleaves;
+
+
+                             // FINALIZE LEAVE BALANCES PER USER
+
+                             if ($totalvleaves > 0) {
+                                 $wpdb->query($wpdb->prepare(
+                                     "UPDATE staff_yearleave_balances
+                                      SET total_leaves_filed = %f
+                                      WHERE staff_userid = %s AND leaves_names = 'VacationLeave' AND years = %s",
+                                     $totalvleaves,
+                                     $useridxzz,
+                                     $yearseco
+                                 ));
+                                 //echo "VacationLeave → $useridxzz | Filed: $totalvleaves<br>";
+                             }
+
+                             if ($totalleave > 0) {
+                                 $wpdb->query($wpdb->prepare(
+                                     "UPDATE staff_yearleave_balances
+                                      SET total_leaves_filed = %f
+                                      WHERE staff_userid = %s AND leaves_names = 'SickLeave' AND years = %s",
+                                     $totalleave,
+                                     $useridxzz,
+                                     $yearseco
+                                 ));
+
+                               //  echo "SickLeave → $useridxzz | Filed: $totalleave<br>";
+                             }
+
+
+
+                           }
+
+
+
+
+
+                           $gcalvals = "
+                               SELECT
+                                   staff_userid,
+                                   leaves_names,
+                                   Yearly_Entitlement,
+                                   total_leaves_filed,
+                                   Remaining_Balances,
+                                   (Yearly_Entitlement - total_leaves_filed) AS balance_difference
+                               FROM staff_yearleave_balances
+                               WHERE years = '$yearseco'
+                               ORDER BY balance_difference ASC
+                           ";
+
+                           $getal = $wpdb->get_results($gcalvals);
+
+                           foreach ($getal as $row) {
+                               $new_balance = floatval($row->Yearly_Entitlement) - floatval($row->total_leaves_filed);
+
+                               // Update Remaining_Balances for this row
+                               $wpdb->query(
+                                   $wpdb->prepare(
+                                       "UPDATE staff_yearleave_balances
+                                        SET Remaining_Balances = %f
+                                        WHERE staff_userid = %s AND leaves_names = %s AND years = %d",
+                                       $new_balance,
+                                       $row->staff_userid,
+                                       $row->leaves_names,
+                                       $yearseco
+                                   )
+                               );
+
+
+                               // Store log/debug info
+                               $updated_data[] = $row->staff_userid . " - " . $row->leaves_names . ": New Remaining_Balances = " . number_format($new_balance, 2);
+
+
+
+
+
+                           }
+
+
+                           // Final response (after all updates)
+                           wp_send_json_success([
+                               'message' => 'Remaining_Balances successfully updated.',
+                               'data' => $updated_data,
+                               'count' => count($updated_data),
+                           ]);
+
+
+
+
+
+	```
+
+
+
+
+
+
+
+
+#
+
 ## Patch: 2025-07-03 P1
 **File Names:** 
 
@@ -156,41 +410,38 @@ Template:
 		
 		?>
 	
-	```
-	
-	```php
 
-	<?php
-	
-		
-				/**
-				** GET THE USER EMAIL ADD THEN 
-				** DO A SEARCH AND FIND THE EMAIL ADDRESS 
-				** THAT IS BIND TO THER USERNAME VIA PORTAL
-				**/
-
-
+		<?php
 				
-				// Get user email safely
-					$gwordpdash = $wpdb->get_var(
-						$wpdb->prepare(
-							"SELECT user_email FROM {$wpdb->prefix}users WHERE user_login = %s",
-							$user_namep
-						)
-					);
 					
-					// Proceed only if an email is found
-					if ($gwordpdash) {
-						// Get vendor using the fetched email safely
-						$getvendors = $wpdb->get_results(
-							$wpdb->prepare(
-								"SELECT * FROM igsl_rc_and_vendor_combine WHERE Name_Email = %s LIMIT 1",
-								$gwordpdash
-							)
-						);
-					}
-	
-	?>
+							/**
+							** GET THE USER EMAIL ADD THEN 
+							** DO A SEARCH AND FIND THE EMAIL ADDRESS 
+							** THAT IS BIND TO THER USERNAME VIA PORTAL
+							**/
+
+
+							
+							// Get user email safely
+								$gwordpdash = $wpdb->get_var(
+									$wpdb->prepare(
+										"SELECT user_email FROM {$wpdb->prefix}users WHERE user_login = %s",
+										$user_namep
+									)
+								);
+								
+								// Proceed only if an email is found
+								if ($gwordpdash) {
+									// Get vendor using the fetched email safely
+									$getvendors = $wpdb->get_results(
+										$wpdb->prepare(
+											"SELECT * FROM igsl_rc_and_vendor_combine WHERE Name_Email = %s LIMIT 1",
+											$gwordpdash
+										)
+									);
+								}
+				
+				?>
 
 	```
 
